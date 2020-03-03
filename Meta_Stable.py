@@ -1,43 +1,39 @@
 import numpy as np
 from itertools import product
-import math as m
-import csv
+import math
+####Written by Tomer Hershkovitz, for any questions reach me by mail tomerhz14@gmail.com######
+##before using make sure you are using python3,you have numpy, you have itertools,you have math, if not use pip install
 
-
-class Assosiative:
-    def __init__(self):
-        self.path = '/Users/tomerhershkovitz/Google_Drive/BGU_studies/Moti/Diamond_func.csv'
+class Meta_Stable:
+    def __init__(self,Function_path):
+        """init function-
+        input - Function_path a csv path of your reguler function (no MS values are allowed), insert in a gray order if not mention it in a flag below
+        output - None
+        F: {0,1}^n X {0,1}^n ---> {0,1}^m
+        Example:
+             import Meta_Stable
+             M = Meta_Stable.Meta_Stable('/Users/tomerhershkovitz/Google_Drive/BGU_studies/Moti/Diamond_func.csv')
+             """
+        self.path = Function_path  ###Path to CSV of Boolean function
         self.func_list = self._read_Bool_func_from_csv_to_func_list()
-        self.MS_Input = self.generate_MS_input()
-        self.Input = self.generate_input()
-        self.Insertion_Format = "Gray"  ##Gray/Binary
-        # self.Is_associative(self.MS_Input)
-        if self.first_test():
-            print("Your MS Boolean Function holds condition 1 and therefor is assosiative")
-        elif self.second_test():
-            print("Your MS Boolean Function holds condition 2 and therefor is assosiative")
-        elif self.third_test():
-            print("Your MS Boolean Function holds condition 3 and therefor is assosiative")
-        else:
-            print("Your MS Boolean Function failed on all 3 criterions & therefor is not neccessrly assosiative")
+        self.n = int(math.log2(self.func_list.__len__()))
+        self.MS_Input = self.generate_MS_input(self.n)
+        self.Input = self.generate_input(self.n)
+        self.Insertion_Format = "Gray"  ##Gray/Binary order of your table
 
-    # def first_test(self):
-    #     for input_row in self.MS_Input:
-    #         for input_col in self.MS_Input:
-    #             inputs_concut = input_row + input_col
-    #             Group_A = [self.func_list[self.list2ind(inputs, 'row')][self.list2ind(inputs, 'column')] for inputs in self.res(inputs_concut)]
-    #             Group_B = self.res(self.star([self.func_list[self.list2ind(inputs, 'row')][self.list2ind(inputs, 'column')] for inputs in self.res(inputs_concut)]))
-    #             for a in Group_A:
-    #                 if [int(x) for x in a] not in Group_B:
-    #                     print("1st condition not acheived here for row input {} and col input {} we receive f(res(x,y)) = {} & res(*f(res(x,y))) = {}".format(input_row,input_row,Group_A,Group_B))
-    #                     return False
-    #             for b in Group_B:
-    #                 if [int(x) for x in b] not in Group_A:
-    #                     print("1st condition not acheived here for row input {} and col input {} we receive f(res(x,y)) = {} & res(*f(res(x,y))) = {}".format(input_row,input_row,Group_A,Group_B))
-    #                     return False
-    #     return True
+
+
+
 
     def first_test(self):
+        """This function is testing whether your Boolean MSc function is Associative according to test 1
+         inputs - None
+         outputs - Boolean
+         Example:
+             import Meta_Stable
+             M = Meta_Stable.Meta_Stable('/Users/tomerhershkovitz/Google_Drive/BGU_studies/Moti/Diamond_func.csv')
+             M.first_test()
+         """
         for input_row in self.MS_Input:
             for input_col in self.MS_Input:
                 inputs_concut = input_row + input_col
@@ -51,43 +47,102 @@ class Assosiative:
                     if [int(x) for x in b] not in Group_A:
                         print("1st condition not acheived here for row input {} and col input {} we receive f(res(x,y)) = {} & res(*f(res(x,y))) = {}".format(input_row,input_row,Group_A,Group_B))
                         return False
+        print("you can use PPC your MS function is Associative, passed condition 1")
         return True
+
 
     def second_test(self):
+        """This function is testing whether your Boolean MSc function is Associative according to test 2
+         inputs - None
+         outputs - Boolean
+         Example:
+             import Meta_Stable
+             M = Meta_Stable.Meta_Stable('/Users/tomerhershkovitz/Google_Drive/BGU_studies/Moti/Diamond_func.csv')
+             M.second_test()
+         """
         for input_row in self.MS_Input:
             for input_col in self.MS_Input:
                 inputs_concut = input_row + input_col
-                A = self.star([self.func_list[self.list2ind(inputs, 'row')][self.list2ind(inputs, 'column')] for inputs in self.res(inputs_concut)])
-                B = self.star(self.res(self.star([self.func_list[self.list2ind(inputs, 'row')][self.list2ind(inputs, 'column')] for inputs in self.res(inputs_concut)])))
-                if A != B:
-                    print("2nd condition not acheived here for row input {} and col input {} we receive *f(res(x,y)) = {} & *res(*f(res(x,y))) = {}".format(input_row,input_row,A,B))
-                    return False
+                A = [self.func_list[self.list2ind(inputs, 'row')][self.list2ind(inputs, 'column')] for inputs in self.res(inputs_concut)]
+                B = self.res(self.star([self.func_list[self.list2ind(inputs, 'row')][self.list2ind(inputs, 'column')] for inputs in self.res(inputs_concut)]))
+                for z in self.Input:
+                    Group_A = [self.func_list[self.list2ind(input + z, 'row')][self.list2ind(input + z, 'column')] for input in A]
+                    Group_B = [self.func_list[self.list2ind(input + z, 'row')][self.list2ind(input + z, 'column')] for input in B]
+                    for a in Group_A:
+                        if [int(x) for x in a] not in Group_B:
+                            print("2nd condition not acheived here for row input {}, col input {} & z = {} we receive f(f(res(x,y)),z) = {} & f(res(*f(res(x,y))),z) = {}".format(input_row, input_row,z, Group_A, Group_B))
+                            return False
+                    for b in Group_B:
+                        if [int(x) for x in b] not in Group_A:
+                            print("2nd condition not acheived here for row input {}, col input {} & z = {} we receive f(f(res(x,y)),z) = {} & f(res(*f(res(x,y))),z) = {}".format(input_row, input_row, z, Group_A, Group_B))
+                            return False
+                    Group_A = [self.func_list[self.list2ind(z + input, 'row')][self.list2ind(z + input, 'column')] for input in A]
+                    Group_B = [self.func_list[self.list2ind(z + input, 'row')][self.list2ind(z + input, 'column')] for input in B]
+                    for a in Group_A:
+                        if [int(x) for x in a] not in Group_B:
+                            print("2nd condition not acheived here for row input {}, col input {} & z = {} we receive f(z,f(res(x,y))) = {} & f(z,res(*f(res(x,y)))) = {}".format(input_row, input_row,z, Group_A, Group_B))
+                            return False
+                    for b in Group_B:
+                        if [int(x) for x in b] not in Group_A:
+                            print("2nd condition not acheived here for row input {}, col input {} & z = {} we receive f(z,f(res(x,y))) = {} & f(z,res(*f(res(x,y)))) = {}".format(input_row, input_row, z, Group_A, Group_B))
+                            return False
+        print("you can use PPC your MS function is Associative, passed condition 2")
         return True
+
 
     def third_test(self):
+        """This function is testing whether your Boolean MSc function is Associative according to test 3
+         inputs - None
+         outputs - Boolean
+         Example:
+             import Meta_Stable
+             M = Meta_Stable.Meta_Stable('/Users/tomerhershkovitz/Google_Drive/BGU_studies/Moti/Diamond_func.csv')
+             M.third_test()
+         """
         for input_row in self.MS_Input:
             for input_col in self.MS_Input:
                 inputs_concut = input_row + input_col
-                Group_A = self.res(self.star([self.func_list[self.list2ind(inputs, 'row')][self.list2ind(inputs, 'column')] for inputs in self.res(inputs_concut)]))
-                Group_B = self.res(self.star(self.res(self.star([self.func_list[self.list2ind(inputs, 'row')][self.list2ind(inputs, 'column')] for inputs in self.res(inputs_concut)]))))
-                for a in Group_A:
-                    if [int(x) for x in a] not in Group_B:
-                        print("1st condition not acheived here for row input {} and col input {} we receive f(res(x,y)) = {} & res(*f(res(x,y))) = {}".format(input_row,input_row,Group_A,Group_B))
+                A = [self.func_list[self.list2ind(inputs, 'row')][self.list2ind(inputs, 'column')] for inputs in self.res(inputs_concut)]
+                B = self.res(self.star([self.func_list[self.list2ind(inputs, 'row')][self.list2ind(inputs, 'column')] for inputs in self.res(inputs_concut)]))
+                for z in self.Input:
+                    Group_A = [self.func_list[self.list2ind(input + z, 'row')][self.list2ind(input + z, 'column')] for input in A]
+                    Group_B = [self.func_list[self.list2ind(input + z, 'row')][self.list2ind(input + z, 'column')] for input in B]
+                    if self.star(Group_A) != self.star(Group_B):
+                        print("3rd condition not acheived here for row input {}, col input {} & z = {} we receive *f(z,f(res(x,y))) = {} & *f(z,res(*f(res(x,y)))) = {}".format(input_row, input_row, z, self.star(Group_A), self.star(Group_B)))
                         return False
-                for b in Group_B:
-                    if [int(x) for x in b] not in Group_A:
-                        print("1st condition not acheived here for row input {} and col input {} we receive f(res(x,y)) = {} & res(*f(res(x,y))) = {}".format(input_row,input_row,Group_A,Group_B))
+                    Group_A = [self.func_list[self.list2ind(z + input, 'row')][self.list2ind(z + input, 'column')] for input in A]
+                    Group_B = [self.func_list[self.list2ind(z + input, 'row')][self.list2ind(z + input, 'column')] for input in B]
+                    if self.star(Group_A) != self.star(Group_B):
+                        print("3rd condition not acheived here for row input {}, col input {} & z = {} we receive *f(z,f(res(x,y))) = {} & *f(z,res(*f(res(x,y)))) = {}".format(input_row, input_row, z, self.star(Group_A), self.star(Group_B)))
                         return False
+        print("you can use PPC your MS function is Associative, passed condition 3")
         return True
-    def generate_input(self):
-        return [list(x) for x in list(product([0, 1], repeat=self.func_list[0][0].__len__()))]
 
-    def generate_MS_input(self):
-        return [list(x) for x in list(product([0, 1, 'M'], repeat = self.func_list[0][0].__len__()))]
+    def generate_input(self,bits_number):
+        """This function create the boolean input stream according to n (number of bits in your inputs)
+         inputs - bits number
+         outputs - Boolean list of your inputs
+         Example:
+             import Meta_Stable
+             M = Meta_Stable.Meta_Stable('/Users/tomerhershkovitz/Google_Drive/BGU_studies/Moti/Diamond_func.csv')
+             M.generate_input(5)
+         """
+        return [list(x) for x in list(product([0, 1], repeat= bits_number))]
+
+    def generate_MS_input(self, bits_number):
+        """This function create the MS boolean input stream according to n (number of bits in your inputs)
+         inputs - bits number
+         outputs - Boolean list of your inputs
+         Example:
+             import Meta_Stable
+             M = Meta_Stable.Meta_Stable('/Users/tomerhershkovitz/Google_Drive/BGU_studies/Moti/Diamond_func.csv')
+             M.generate_MS_input(3)
+         """
+        return [list(x) for x in list(product([0, 1, 'M'], repeat = bits_number))]
 
     def _read_Bool_func_from_csv_to_func_list(self):
-        """No Meta stable functions are allowed here, these are for functions from
-        {0,1}^n X {0,1}^m --> {0,1}^k, please insert the table in grey code order"""
+        """internal function: No Meta stable functions are allowed here, these are for functions from
+        {0,1}^n X {0,1}^n --> {0,1}m, please insert the table in grey code order, if not state it at the flag in the init func"""
         func_list = []
         with open(self.path,'r') as M:
             for i,row in enumerate(M):
@@ -99,6 +154,15 @@ class Assosiative:
         return func_list
 
     def star(self,list_of_bool):
+        """This function implements the MS star operator as defined in the lectures
+         inputs - list of booleans from {0,1}^n
+         outputs - the MS output of the operator
+         Example:
+             import Meta_Stable
+             M = Meta_Stable.Meta_Stable('/Users/tomerhershkovitz/Google_Drive/BGU_studies/Moti/Diamond_func.csv')
+             M.star([[0,0,1],[0,0,0],[False,True,False]])
+             output: [False, 'M', 'M']
+         """
         Sum_of_cols = [sum(x) for x in zip(*list_of_bool)]
         length = list_of_bool.__len__()
         Result = [True if v == length else False if v == 0 else 'M' for v in Sum_of_cols]
@@ -108,6 +172,19 @@ class Assosiative:
         return np.array([int(i) for i in list('{:0{}b}'.format(dec_num,padding))])
 
     def res(self,list_of_ms_inputs):
+        """This function implements the res function as defined in the lectures
+         inputs - an MS entry belongs to {0,1,'M'}^n
+         outputs - a list of booleans that belongs to {0,1}^n
+         Example:
+             import Meta_Stable
+             M = Meta_Stable.Meta_Stable('/Users/tomerhershkovitz/Google_Drive/BGU_studies/Moti/Diamond_func.csv')
+             M.res([0,1,True,'M',False,'M'])
+             output:
+             [[False, True, True, False, False, False],
+             [False, True, True, False, False, True],
+             [False, True, True, True, False, False],
+             [False, True, True, True, False, True]]
+         """
         num_of_M = np.sum([1 for input in list_of_ms_inputs if input == 'M'])
         if not num_of_M:    return [list_of_ms_inputs]
         ind      = np.array([i for i,input in enumerate(list_of_ms_inputs) if input == 'M'])
@@ -118,7 +195,9 @@ class Assosiative:
             temp[ind] = all_bin_opt[i]
             temp = [1 if (itr == '1' or itr == 'True') else 0 for itr in temp ]
             list_of_inputs[i] = temp
-        return list_of_inputs
+        return [[bool(a) for a in BOOL] for BOOL in list_of_inputs]   ###change here
+
+        # return list_of_inputs  ###change here
 
     def list2ind(self,list_of_inputs,RowOrCol):
         length = list_of_inputs.__len__()
@@ -130,9 +209,27 @@ class Assosiative:
         return np.sum([2 ** i * x for i, x in enumerate(Relevent_input_bin[::-1])])
 
     def F_closer(self,inputs):
+        """This function implements the F closer by definition *f(res(x))) as defined in the lectures
+         input - a MS input that belongs to {0,1,'M'}
+         output - the value of the F_closer on that input
+         Example:
+             import Meta_Stable
+             M = Meta_Stable.Meta_Stable('/Users/tomerhershkovitz/Google_Drive/BGU_studies/Moti/Diamond_func.csv')
+             M.F_closer([0,1]+[True,'M'])
+             output: [False, True]
+         """
         return self.star([self.func_list[self.list2ind(inputs, 'row')][self.list2ind(inputs, 'column')] for inputs in self.res(inputs)])
 
     def Is_associative(self,inputs):
+        """This function Tests by definition if your function is Associative or not
+         inputs - can be boolean inputs or MS boolean inputs.
+         outputs - Boolean
+         Example:
+             import Meta_Stable
+             M = Meta_Stable.Meta_Stable('/Users/tomerhershkovitz/Google_Drive/BGU_studies/Moti/Diamond_func.csv')
+             M.Is_associative(M.MS_Input)
+             output: test ended good! your function is associative you can use PPC!!!
+         """
         flag = 0
         for x in inputs:
             for y in inputs:
@@ -149,14 +246,25 @@ class Assosiative:
         if not flag:
             print("test ended good! your function is associative you can use PPC!!!")
 
-    def Export_MS_Truth_Table(self, row_inputs, col_inputs):
+    def Export_MS_Truth_Table(self, row_inputs, col_inputs, Path_MS_Table):
+        """This function Exports your MS truth table
+         inputs -
+            Row inputs - list of your row boolean MS inputs
+            Col inputs - list of your col boolean MS inputs
+            Path_MS_Table - where would you like to save your truth table
+         outputs - a csv of the truth table
+         Example:
+             import Meta_Stable
+             M = Meta_Stable.Meta_Stable('/Users/tomerhershkovitz/Google_Drive/BGU_studies/Moti/Diamond_func.csv')
+             M.Export_MS_Truth_Table(M.MS_Input,M.MS_Input,'/Users/tomerhershkovitz/Google_Drive/BGU_studies/Moti')
+         """
         row_length = row_inputs.__len__();
         col_length = col_inputs.__len__();
         z = [[[0, 0] for x in range(col_length)] for y in range(row_length)]
         for i, x in enumerate(row_inputs):
             for j, y in enumerate(col_inputs):
                 z[i][j] = self.F_closer(x + y)
-        with open('/Users/tomerhershkovitz/Google_Drive/BGU_studies/Moti/Truth_table.csv', 'w') as F:
+        with open('{}/MS_Truth_table.csv'.format(Path_MS_Table), 'w') as F:
             F.write(',')
             F.write('{}\n'.format(col_inputs).replace(',', ' ').replace(']', '],').replace('[', '').replace(']', '').replace("'M'", 'M').replace('0', 'False').replace('1', 'True'))
             for i in range(row_length):
@@ -167,6 +275,15 @@ class Assosiative:
             print('\n')
 
     def Create_RG(self, n):
+        """This function Creates a strings of gray code by order
+                 inputs - number of bits
+                 outputs - list of strings
+                 Example:
+                     import Meta_Stable
+                     M = Meta_Stable.Meta_Stable('/Users/tomerhershkovitz/Google_Drive/BGU_studies/Moti/Diamond_func.csv')
+                     M.Create_RG(3)
+                     output:['000', '001', '011', '010', '110', '111', '101', '100']
+                 """
         if n <= 0:
             return []
         if n == 1:
@@ -174,28 +291,6 @@ class Assosiative:
         res = self.Create_RG(n - 1)
         return ['0' + s for s in res] + ['1' + s for s in res[::-1]]
 
-    def bin_str_to_list_of_bool(self, RG):
-        return [[bool(int(x)) for x in str] for str in RG]
-
-    # def Create_MS_RG(self, n):
-    #     """At the moment only good for n=2"""
-    #     RG = self.Create_RG(n)
-    #     RG = self.bin_str_to_list_of_bool(RG)
-    #     MS_RG = []
-    #     j = 0
-    #     for i in range(3**n):
-    #         if i%2 == 0:
-    #             MS_RG.append(RG[j])
-    #         elif j < 2**n - 1:
-    #             temp = RG[j].copy()
-    #             temp[np.where(np.logical_xor(RG[j], RG[j+1]))[0][0]] = 'M'
-    #             j = j+1
-    #             MS_RG.append(temp)
-    #         elif j == 2 ** n - 1:
-    #             break
-    #     MS_RG.append(['M' if i == 0 else False for i in range(n)])
-    #     MS_RG.append(['M' for i in range(n)])
-    #     return MS_RG
 
     def xor_c(self,a, b):
         return '0' if (a == b) else '1';
@@ -208,6 +303,15 @@ class Assosiative:
     # function to convert binary string
     # to gray string
     def binarytoGray(self,binary):
+        """This function is a binary to gray converter
+                 inputs - list of binary
+                 outputs - list of gray
+                 Example:
+                     import Meta_Stable
+                     M = Meta_Stable.Meta_Stable('/Users/tomerhershkovitz/Google_Drive/BGU_studies/Moti/Diamond_func.csv')
+                     M.binarytoGray([1,0])
+                     output:[1, 1]
+                 """
         binary = ''.join([str(int(x)) for x in binary])
         gray = "";
 
@@ -230,6 +334,15 @@ class Assosiative:
     # function to convert gray code
     # string to binary string
     def graytoBinary(self,gray):
+        """This function is a binary to gray converter
+                 inputs - list of gray
+                 outputs - list of binary
+                 Example:
+                     import Meta_Stable
+                     M = Meta_Stable.Meta_Stable('/Users/tomerhershkovitz/Google_Drive/BGU_studies/Moti/Diamond_func.csv')
+                     M.graytoBinary([1,1])
+                     output:[1, 0]
+                 """
         if self.Insertion_Format == 'Binary':   ##if this condition hold, it is not realy gray code but binary,simply return it
             return gray
         gray = ''.join([str(int(x)) for x in gray])
@@ -255,8 +368,4 @@ class Assosiative:
         return [int(x) for x in binary]
 
 
-import Assosiative_4
-A = Assosiative_4.Assosiative()
-# A.Is_associative(A.c)
-# A = Assosiative()
-# A.Create_MS_RG(2)
+
